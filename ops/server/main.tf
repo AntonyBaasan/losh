@@ -103,9 +103,9 @@ resource "google_compute_instance" "free_vm" {
   }
 
   metadata = {
-    ssh-keys = "${var.ssh_user}:${file(var.ssh_pub_key_path)}"
+    ssh-keys = "${var.ssh_user}:${file(pathexpand(var.ssh_pub_key_path))}"
   }
-
+  
   lifecycle {
     ignore_changes = [metadata["ssh-keys"]]
   }

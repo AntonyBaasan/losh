@@ -1,6 +1,6 @@
 # Project Overview
 
-`losh` (Local Share) is a reverse proxy that allows you to expose an application running on your local machine to the Internet. It is designed to be lightweight and simple, similar in concept to `frp`.
+`losh` (Local Share) is a reverse proxy that allows you to expose an application running on your local machine to the Internet. It is designed to be lightweight and simple, similar in concept to `frp` and `ngrok`.
 
 ## Core Features
 

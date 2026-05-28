@@ -5,6 +5,14 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 4.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -41,6 +49,12 @@ variable "ssh_pub_key_path" {
   type        = string
   default     = "~/.ssh/id_rsa.pub"
   description = "Path to the public SSH key file."
+}
+
+variable "ssh_private_key_path" {
+  type        = string
+  default     = "~/.ssh/id_rsa"
+  description = "Path to the private SSH key file."
 }
 
 # VPC Network
@@ -114,4 +128,45 @@ resource "google_compute_instance" "free_vm" {
 output "instance_public_ip" {
   value       = google_compute_instance.free_vm.network_interface[0].access_config[0].nat_ip
   description = "The public IP address of the newly created GCP instance."
+}
+
+# Dynamically generate inventory.ini with the VM's public IP
+resource "local_file" "ansible_inventory" {
+  filename = "${path.module}/../ansible/inventory.ini"
+  content  = <<EOT
+[losh_servers]
+losh-server ansible_host=${google_compute_instance.free_vm.network_interface[0].access_config[0].nat_ip} ansible_user=${var.ssh_user} ansible_ssh_private_key_file=${var.ssh_private_key_path}
+EOT
+}
+
+# Run Ansible playbook after VM creation and SSH readiness
+resource "null_resource" "run_ansible" {
+  triggers = {
+    instance_id   = google_compute_instance.free_vm.id
+    inventory_md5 = md5(local_file.ansible_inventory.content)
+  }
+
+  connection {
+    type        = "ssh"
+    user        = var.ssh_user
+    private_key = file(pathexpand(var.ssh_private_key_path))
+    host        = google_compute_instance.free_vm.network_interface[0].access_config[0].nat_ip
+  }
+
+  # This remote-exec blocks until SSH is fully ready
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'SSH is ready. Bootstrapping with Ansible...'"
+    ]
+  }
+
+  # This runs the local ansible-playbook command
+  provisioner "local-exec" {
+    command = "ansible-playbook -i ${path.module}/../ansible/inventory.ini ${path.module}/../ansible/playbook.yml"
+  }
+
+  depends_on = [
+    local_file.ansible_inventory,
+    google_compute_instance.free_vm
+  ]
 }

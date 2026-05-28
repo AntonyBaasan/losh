@@ -24,3 +24,11 @@
       ufw:
         rule: allow
         name: 'Nginx Full'
+
+    - name: Deploy custom index.html landing page
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'

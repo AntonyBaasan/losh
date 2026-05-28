@@ -6,7 +6,9 @@ A placeholder multi-module Go project.
 
 - `server/` - Go module containing the server application.
 - `client/` - Go module containing the client application.
-- `ops/` - Infrastructure and deployment files (Terraform).
+- `ops/` - Infrastructure and deployment files:
+  - `server/terraform/` - Terraform configuration to provision the GCP VM.
+  - `server/ansible/` - Ansible playbook to configure the VM and install Nginx.
 - `doc/` - Documentation directory.
 
 ## Prerequisites
@@ -56,9 +58,9 @@ gcloud auth application-default login
 ```
 
 ### 2. Initialize and Deploy Terraform
-Navigate to the `ops/server` directory, initialize, and deploy by passing your GCP project ID:
+Navigate to the `ops/server/terraform` directory, initialize, and deploy by passing your GCP project ID:
 ```bash
-cd ops/server
+cd ops/server/terraform
 terraform init
 terraform apply -var="project_id=YOUR_GCP_PROJECT_ID"
 ```
@@ -70,42 +72,41 @@ ssh -i /path/to/your/private_key ubuntu@<INSTANCE_PUBLIC_IP>
 ```
 
 ### 4. Provisioning (Ansible)
-After the VM is running, you can use Ansible to automatically update Ubuntu and install/enable Nginx.
+
+> [!NOTE]
+> **Terraform is now configured to automatically generate the inventory file, wait for SSH readiness, and run the Ansible playbook for you during `terraform apply`!**
+
+If you make subsequent changes to the playbook or custom HTML page and want to re-run the configuration manually, follow these steps:
 
 #### Prerequisites
 Ensure Ansible is installed on your local machine:
 - **macOS**: `brew install ansible`
 - **Linux/Pip**: `pip install ansible`
 
-#### Step 1: Configure the Inventory
-1. Open the [ops/ansible/inventory.ini](file:///Users/ant/git/losh/ops/ansible/inventory.ini) file.
-2. Replace `YOUR_VM_PUBLIC_IP` with your actual VM public IP address.
-3. Verify that `ansible_ssh_private_key_file` correctly points to your private SSH key (e.g., `~/.ssh/id_rsa`).
-
-#### Step 2: Test the Connection
+#### Step 1: Test the Connection
 Verify that Ansible can successfully connect to the remote VM:
 ```bash
-cd ops/ansible
+cd ops/server/ansible
 ansible all -m ping -i inventory.ini
 ```
 *(If prompted to trust the SSH key fingerprint, type `yes`.)*
 
-#### Step 3: Run the Playbook
-Execute the playbook to update Ubuntu packages and install Nginx:
+#### Step 2: Run the Playbook
+Execute the playbook manually:
 ```bash
 ansible-playbook -i inventory.ini playbook.yml
 ```
 
-#### Step 4: Verify Nginx
+#### Step 3: Verify Nginx
 Open your web browser and navigate to:
 ```
 http://<INSTANCE_PUBLIC_IP>
 ```
-You should see the default **"Welcome to nginx!"** landing page.
+You should see the custom **losh - Local Share Server** landing page.
 
 ### 5. Clean Up (Teardown)
 To completely remove all the provisioned infrastructure and avoid any potential cloud costs:
 ```bash
-cd ops/server
+cd ops/server/terraform
 terraform destroy -var="project_id=YOUR_GCP_PROJECT_ID"
 ```

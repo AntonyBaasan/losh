@@ -104,7 +104,25 @@ http://<INSTANCE_PUBLIC_IP>
 ```
 You should see the custom **losh - Local Share Server** landing page.
 
-### 5. Clean Up (Teardown)
+### 5. Releasing the Server
+
+We have automated the build and release process using **GitHub Actions**. To trigger a new production release and automatically build and attach Ubuntu-compatible binaries (`linux-amd64` and `linux-arm64`):
+
+1. **Tag your commit**:
+   Create a version tag (it must start with `v`, e.g., `v1.0.0`):
+   ```bash
+   git tag v1.0.0
+   ```
+
+2. **Push the tag to GitHub**:
+   ```bash
+   git push origin v1.0.0
+   ```
+
+3. **Download your binaries**:
+   Go to your GitHub repository's **Releases** tab. The `Releaser Losh Server` workflow will have automatically created a release page containing the optimized, pre-compiled binaries ready for deployment.
+
+### 6. Clean Up (Teardown)
 To completely remove all the provisioned infrastructure and avoid any potential cloud costs:
 ```bash
 cd ops/server/terraform

@@ -2,7 +2,14 @@
 - name: Update Ubuntu and Install Nginx
   hosts: losh_servers
   become: yes
+
+  vars:
+    losh_version: "v0.1.1"
+    losh_binary_url: "https://github.com/AntonyBaasan/losh/releases/download/{{ losh_version }}/losh-server-linux-amd64"
+    losh_binary_path: "/usr/local/bin/losh"
+
   tasks:
+
     - name: Update apt cache and upgrade all packages
       apt:
         update_cache: yes
@@ -26,9 +33,61 @@
         name: 'Nginx Full'
 
     - name: Deploy custom index.html landing page
-      copy:
-        src: index.html
+      template:
+        src: index.html.j2
         dest: /var/www/html/index.html
         owner: www-data
         group: www-data
         mode: '0644'
+
+    - name: Create losh user
+      user:
+        name: loshuser
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Download losh binary
+      get_url:
+        url: "{{ losh_binary_url }}"
+        dest: "{{ losh_binary_path }}"
+        mode: '0755'
+    
+    # - name: Create data directory
+    #   file:
+    #     path: /var/lib/losh
+    #     state: directory
+    #     owner: losh
+    #     group: losh
+    #     mode: '0755'
+
+    # - name: Create systemd service
+    #   copy:
+    #     dest: /etc/systemd/system/losh.service
+    #     mode: '0644'
+    #     content: |
+    #       [Unit]
+    #       Description=Losh Server
+    #       After=network.target
+
+    #       [Service]
+    #       Type=simple
+    #       User=loshuser
+    #       Group=losh
+    #       WorkingDirectory=/var/lib/losh
+    #       ExecStart=/usr/local/bin/losh
+    #       Restart=always
+    #       RestartSec=5
+
+    #       [Install]
+    #       WantedBy=multi-user.target
+
+    # - name: Reload systemd
+    #   systemd:
+    #     daemon_reload: true
+
+    # - name: Enable and start losh
+    #   systemd:
+    #     name: losh
+    #     enabled: true
+    #     state: started

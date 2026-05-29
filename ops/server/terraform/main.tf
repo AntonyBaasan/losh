@@ -144,6 +144,8 @@ resource "null_resource" "run_ansible" {
   triggers = {
     instance_id   = google_compute_instance.free_vm.id
     inventory_md5 = md5(local_file.ansible_inventory.content)
+    # TODO: improve this change
+    playbook_hash = filesha256("${path.module}/../ansible/playbook.yml")
   }
 
   connection {

@@ -28,6 +28,7 @@ Thumbs.db
 *.tfstate.backup
 .terraform.lock.hcl
 *.tfvars
+.terraform.tfstate.lock.info
 
 
 CMD.md

@@ -1,0 +1,44 @@
+name: Releaser Losh Server
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release and Upload Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build for Linux AMD64
+        run: |
+          cd server
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o losh-server-linux-amd64 main.go
+
+      - name: Build for Linux ARM64
+        run: |
+          cd server
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o losh-server-linux-arm64 main.go
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            server/losh-server-linux-amd64
+            server/losh-server-linux-arm64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

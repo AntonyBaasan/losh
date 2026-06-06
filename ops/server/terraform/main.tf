@@ -57,6 +57,12 @@ variable "ssh_private_key_path" {
   description = "Path to the private SSH key file."
 }
 
+variable "playbook_path" {
+  type        = string
+  default     = "../ansible/playbook.yml"
+  description = "Path to the Ansible playbook file, relative to the terraform module."
+}
+
 # VPC Network
 resource "google_compute_network" "vpc_network" {
   name                    = "losh-vpc"
@@ -85,7 +91,7 @@ resource "google_compute_firewall" "allow_losh" {
   allow {
     protocol = "tcp"
     # Port 7000 (control), 80/443 (HTTP/S), and 8080 (dashboard or alternative port)
-    ports    = ["7000", "80", "443", "8080"]
+    ports = ["7000", "80", "443", "8080"]
   }
 
   source_ranges = ["0.0.0.0/0"]
@@ -119,7 +125,7 @@ resource "google_compute_instance" "free_vm" {
   metadata = {
     ssh-keys = "${var.ssh_user}:${file(pathexpand(var.ssh_pub_key_path))}"
   }
-  
+
   lifecycle {
     ignore_changes = [metadata["ssh-keys"]]
   }
@@ -144,8 +150,7 @@ resource "null_resource" "run_ansible" {
   triggers = {
     instance_id   = google_compute_instance.free_vm.id
     inventory_md5 = md5(local_file.ansible_inventory.content)
-    # TODO: improve this change
-    playbook_hash = filesha256("${path.module}/../ansible/playbook.yml")
+    playbook_hash = filesha256("${path.module}/${var.playbook_path}")
   }
 
   connection {
@@ -164,7 +169,7 @@ resource "null_resource" "run_ansible" {
 
   # This runs the local ansible-playbook command
   provisioner "local-exec" {
-    command = "ansible-playbook -i ${path.module}/../ansible/inventory.ini ${path.module}/../ansible/playbook.yml"
+    command = "ansible-playbook -i ${path.module}/../ansible/inventory.ini ${path.module}/${var.playbook_path}"
   }
 
   depends_on = [

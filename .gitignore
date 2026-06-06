@@ -32,3 +32,8 @@ Thumbs.db
 
 
 CMD.md
+
+server/bin
+client/bin
+
+*.log

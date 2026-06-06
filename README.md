@@ -1,5 +1,9 @@
 # losh
 
+[![Client Test](https://github.com/AntonyBaasan/losh/actions/workflows/client-test.yml/badge.svg)](https://github.com/AntonyBaasan/losh/actions/workflows/client-test.yml)
+[![Server Test](https://github.com/AntonyBaasan/losh/actions/workflows/server-test.yml/badge.svg)](https://github.com/AntonyBaasan/losh/actions/workflows/server-test.yml)
+[![Release Losh Server](https://github.com/AntonyBaasan/losh/actions/workflows/releaser-losh-server.yml/badge.svg)](https://github.com/AntonyBaasan/losh/actions/workflows/releaser-losh-server.yml)
+
 A placeholder multi-module Go project.
 
 ## Directory Structure

@@ -32,4 +32,4 @@ jobs:
       - name: Build Test Binary
         run: |
           cd server
-          go build -o server main.go
+          go build -o server .
